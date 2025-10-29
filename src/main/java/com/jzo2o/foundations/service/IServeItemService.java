@@ -97,4 +97,5 @@ public interface IServeItemService extends IService<ServeItem> {
      * @return 服务项目录
      */
     List<ServeTypeCategoryResDTO> queryActiveServeItemCategory();
+     ServeItem queryServeItemByServeId(Long id);
 }

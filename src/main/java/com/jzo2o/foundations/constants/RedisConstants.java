@@ -47,7 +47,7 @@ public class RedisConstants {
         public static final String FOREVER = "cacheManagerForever";
 
         /**
-         * 缓存时间永久
+         * 缓存时间30分钟
          */
         public static final String THIRTY_MINUTES = "cacheManager30Minutes";
 

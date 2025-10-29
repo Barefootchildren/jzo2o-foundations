@@ -3,6 +3,7 @@ package com.jzo2o.foundations.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.jzo2o.api.foundations.dto.response.ServeItemResDTO;
 import com.jzo2o.api.foundations.dto.response.ServeTypeCategoryResDTO;
+import com.jzo2o.foundations.model.domain.Serve;
 import com.jzo2o.foundations.model.domain.ServeItem;
 import com.jzo2o.foundations.model.domain.ServeType;
 import org.apache.ibatis.annotations.Param;
@@ -57,4 +58,5 @@ public interface ServeItemMapper extends BaseMapper<ServeItem> {
      * @return 服务项目录
      */
     List<ServeTypeCategoryResDTO> queryActiveServeItemCategory();
+    List<ServeItem> queryHotServeItem();
 }

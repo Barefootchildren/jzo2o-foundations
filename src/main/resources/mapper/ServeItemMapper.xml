@@ -77,6 +77,55 @@
             type.sort_num,
             item.sort_num
     </select>
+    <select id="queryServeItemByServeId" resultType="com.jzo2o.foundations.model.domain.ServeItem">
+        SELECT
+            item.id,
+            item.code,
+            item.serve_type_id,
+            item.name,
+            item.serve_item_icon,
+            item.img,
+            item.unit,
+            item.description,
+            item.detail_img,
+            item.reference_price,
+            item.sort_num,
+            item.active_status,
+            item.create_time,
+            item.update_time,
+            item.create_by,
+            item.update_by
+        FROM
+            serve
+                LEFT JOIN serve_item AS item ON serve.serve_item_id =item.id
+        WHERE
+            serve.id = #{id}
+    </select>
+    <select id="queryHotServeItem" resultType="com.jzo2o.foundations.model.domain.ServeItem">
+        SELECT
+            item.id,
+            item.code,
+            item.serve_type_id,
+            item.name,
+            item.serve_item_icon,
+            item.img,
+            item.unit,
+            item.description,
+            item.detail_img,
+            item.reference_price,
+            item.sort_num,
+            item.active_status,
+            item.create_time,
+            item.update_time,
+            item.create_by,
+            item.update_by
+        FROM
+            serve
+                LEFT JOIN serve_item AS item ON serve.serve_item_id =item.id
+        WHERE
+            serve.sale_status = 2 and
+            serve.is_hot=1
+    </select>
 
     <!--手动的映射-->
     <resultMap id="ServeItemCategoryMap" type="com.jzo2o.api.foundations.dto.response.ServeTypeCategoryResDTO">

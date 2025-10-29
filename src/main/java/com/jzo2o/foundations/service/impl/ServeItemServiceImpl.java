@@ -27,6 +27,8 @@ import com.jzo2o.foundations.service.IServeSyncService;
 import com.jzo2o.mysql.utils.PageHelperUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -258,4 +260,26 @@ public class ServeItemServiceImpl extends ServiceImpl<ServeItemMapper, ServeItem
     public List<ServeTypeCategoryResDTO> queryActiveServeItemCategory() {
         return baseMapper.queryActiveServeItemCategory();
     }
+    /**
+     * 根据服务ID查询服务项目信息
+     *
+     * 该方法使用双重缓存策略：
+     * 1. 当查询结果为空时，将空值缓存30分钟，防止缓存击穿
+     * 2. 当查询结果不为空时，将数据缓存24小时
+     *
+     * @param id 服务项目ID
+     * @return 服务项目信息，如果不存在则返回null
+     */
+    @Caching(cacheable={
+            //缓存击穿时缓存空值
+            @Cacheable(value = RedisConstants.CacheName.SERVE_ITEM,key = "#id",unless = "#result!=null"
+                    ,cacheManager = RedisConstants.CacheManager.THIRTY_MINUTES),
+            //正常查询时缓存数据，并永久缓存
+            @Cacheable(value = RedisConstants.CacheName.SERVE_ITEM,key ="#id",unless = "#result==null"
+                    ,cacheManager = RedisConstants.CacheManager.ONE_DAY)
+    })
+    public ServeItem queryServeItemByServeId(Long id) {
+        return baseMapper.queryServeItemByServeId(id);
+    }
+
 }
