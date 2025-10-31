@@ -14,18 +14,15 @@ import com.jzo2o.common.expcetions.ForbiddenOperationException;
 import com.jzo2o.common.model.PageResult;
 import com.jzo2o.foundations.constants.RedisConstants;
 import com.jzo2o.foundations.enums.FoundationStatusEnum;
-import com.jzo2o.foundations.mapper.RegionMapper;
 import com.jzo2o.foundations.mapper.ServeItemMapper;
-import com.jzo2o.foundations.mapper.ServeMapper;
 import com.jzo2o.foundations.mapper.ServeTypeMapper;
-import com.jzo2o.foundations.model.domain.Region;
 import com.jzo2o.foundations.model.domain.ServeItem;
 import com.jzo2o.foundations.model.domain.ServeType;
 import com.jzo2o.foundations.model.dto.request.ServeItemPageQueryReqDTO;
 import com.jzo2o.foundations.model.dto.request.ServeItemUpsertReqDTO;
 import com.jzo2o.foundations.model.dto.request.ServeSyncUpdateReqDTO;
-import com.jzo2o.foundations.model.dto.response.ServeResDTO;
 import com.jzo2o.foundations.service.IServeItemService;
+import com.jzo2o.foundations.service.IServeService;
 import com.jzo2o.foundations.service.IServeSyncService;
 import com.jzo2o.mysql.utils.PageHelperUtils;
 import org.springframework.cache.annotation.CacheEvict;
@@ -48,6 +45,8 @@ import java.util.List;
 public class ServeItemServiceImpl extends ServiceImpl<ServeItemMapper, ServeItem> implements IServeItemService {
     @Resource
     private IServeSyncService serveSyncService;
+    @Resource
+    private IServeService serveService;
 
     @Resource
     private ServeTypeMapper serveTypeMapper;
@@ -142,10 +141,7 @@ public class ServeItemServiceImpl extends ServiceImpl<ServeItemMapper, ServeItem
 
         return baseMapper.selectById(id);
     }
-    @Resource
-    private ServeMapper serveMapper;
-    @Resource
-    private RegionMapper regionMapper;
+
     /**
      * 禁用服务项
      *
@@ -167,29 +163,10 @@ public class ServeItemServiceImpl extends ServiceImpl<ServeItemMapper, ServeItem
         if (!(FoundationStatusEnum.ENABLE.getStatus() == activeStatus)) {
             throw new ForbiddenOperationException("启用状态方可禁用");
         }
-
         //有区域在使用该服务将无法禁用（存在关联的区域服务且状态为上架表示有区域在使用该服务项）
-        long regionId=0;
-        StringBuffer regionNames=new StringBuffer();
-        List<ServeResDTO> serveResDTOS = serveMapper.queryServeListByItemId(id);
-        if (serveResDTOS.size() > 0) {
-            for (ServeResDTO serveResDTO : serveResDTOS) {
-                if (serveResDTO.getSaleStatus() == 2) {
-                    //flag = true;
-                    regionId=serveResDTO.getRegionId();
-                    Region region = regionMapper.selectById(regionId);
-                    regionNames.append("【"+region.getName()+"】");
-                }
-            }
-        }
-/*        if(regionId>0) {
-            Region region = regionMapper.selectById(regionId);
-            String regionName = region.getName();
-            throw new ForbiddenOperationException("该服务在【"+regionName+"】处于上架状态，无法禁用");
-        }*/
-        if(regionNames.length()>0) {
-            throw new ForbiddenOperationException("该服务在"+regionNames+"处于上架状态，无法禁用");
-
+        int count = serveService.queryServeCountByServeItemIdAndSaleStatus(id, FoundationStatusEnum.ENABLE.getStatus());
+        if (count > 0) {
+            throw new ForbiddenOperationException("该服务有区域正在使用，无法进行禁用,请先将区域内的服务下架。");
         }
 
         //更新禁用状态
